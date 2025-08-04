@@ -19,8 +19,7 @@ import {
   LinearProgress,
   IconButton,
   Alert,
-  Tabs,
-  Tab,
+
   Paper,
 } from '@mui/material';
 import {
@@ -32,42 +31,45 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box>{children}</Box>}
-    </div>
-  );
-}
+// Removed TabPanel component as we're using parallel layout instead of tabs
 
 const ExaminationDataEntryMockup: React.FC = () => {
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
-  const [eyeTab, setEyeTab] = useState(0);
   const [vasComfort, setVasComfort] = useState(50);
   const [vasDryness, setVasDryness] = useState(30);
 
   // Mock visit configuration - dynamic examination steps
+  // This configuration would come from the Clinical Study setup
   const visitConfiguration = {
     visitId: 'visit-001',
     visitName: 'ベースライン訪問',
     patientCode: 'P001',
     studyName: 'コンタクトレンズ快適性評価試験',
+    // These examination steps are dynamically generated based on
+    // the visit template configuration from Clinical Study creation
     examinationOrder: [
       { id: 'basic-info', name: '基礎情報', completed: true },
       { id: 'vas', name: 'VAS評価', completed: false },
       { id: 'comparative', name: '相対評価', completed: false },
       { id: 'fitting', name: 'フィッティング検査', completed: false },
-      { id: 'questionnaire', name: '問診', completed: false },
     ],
   };
+
+  // Mock survey data for automatic field population
+  const mockSurveyData = {
+    surveyId: 'survey-001',
+    visitId: 'visit-001',
+    patientId: 'patient-001',
+    studyId: 'study-001',
+  };
+
+  // Example of how different visits would have different configurations:
+  // const visitConfigurationExamples = {
+  //   'visit-1-baseline': ['basic-info', 'vas', 'comparative', 'fitting'],
+  //   'visit-2-1week': ['vas', 'comparative', 'lens-inspection', 'questionnaire'],
+  //   'visit-3-1month': ['basic-info', 'vas', 'comparative', 'tear-film', 'corrected-va'],
+  // };
 
   const steps = visitConfiguration.examinationOrder.map((exam) => exam.name);
   const completedSteps = visitConfiguration.examinationOrder.filter(
@@ -88,12 +90,16 @@ const ExaminationDataEntryMockup: React.FC = () => {
     alert('下書きが保存されました');
   };
 
-  const renderBasicInfoForm = () => (
-    <Grid container spacing={3}>
+  const renderBasicInfoForm = (eyeside: string) => (
+    <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Typography variant="h6" gutterBottom>
-          基礎情報入力
+        <Typography variant="subtitle1" gutterBottom>
+          基礎情報入力 ({eyeside === 'Right' ? '右目' : '左目'})
         </Typography>
+        {/* Hidden fields for automatic data population */}
+        <input type="hidden" name="eyeside" value={eyeside} />
+        <input type="hidden" name="surveyId" value={mockSurveyData.surveyId} />
+        <input type="hidden" name="visitId" value={mockSurveyData.visitId} />
       </Grid>
 
       <Grid item xs={12}>
@@ -215,15 +221,19 @@ const ExaminationDataEntryMockup: React.FC = () => {
     </Grid>
   );
 
-  const renderVASForm = () => (
-    <Grid container spacing={3}>
+  const renderVASForm = (eyeside: string) => (
+    <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Typography variant="h6" gutterBottom>
-          VAS (Visual Analog Scale) 評価
+        <Typography variant="subtitle1" gutterBottom>
+          VAS評価 ({eyeside === 'Right' ? '右目' : '左目'})
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          0-100のスケールで評価してください
+          0-100のスケールで評価
         </Typography>
+        {/* Hidden fields for automatic data population */}
+        <input type="hidden" name="eyeside" value={eyeside} />
+        <input type="hidden" name="surveyId" value={mockSurveyData.surveyId} />
+        <input type="hidden" name="visitId" value={mockSurveyData.visitId} />
       </Grid>
 
       <Grid item xs={12}>
@@ -291,15 +301,19 @@ const ExaminationDataEntryMockup: React.FC = () => {
     </Grid>
   );
 
-  const renderComparativeForm = () => (
-    <Grid container spacing={3}>
+  const renderComparativeForm = (eyeside: string) => (
+    <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Typography variant="h6" gutterBottom>
-          相対評価
+        <Typography variant="subtitle1" gutterBottom>
+          相対評価 ({eyeside === 'Right' ? '右目' : '左目'})
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          前回の使用レンズと比較して評価してください
+          前回レンズと比較評価
         </Typography>
+        {/* Hidden fields for automatic data population */}
+        <input type="hidden" name="eyeside" value={eyeside} />
+        <input type="hidden" name="surveyId" value={mockSurveyData.surveyId} />
+        <input type="hidden" name="visitId" value={mockSurveyData.visitId} />
       </Grid>
 
       <Grid item xs={6}>
@@ -394,24 +408,37 @@ const ExaminationDataEntryMockup: React.FC = () => {
     </Grid>
   );
 
-  const renderCurrentStepContent = () => {
+  const renderCurrentStepContent = (eyeside: string) => {
     switch (activeStep) {
       case 0:
-        return renderBasicInfoForm();
+        return renderBasicInfoForm(eyeside);
       case 1:
-        return renderVASForm();
+        return renderVASForm(eyeside);
       case 2:
-        return renderComparativeForm();
+        return renderComparativeForm(eyeside);
       case 3:
         return (
-          <Typography variant="h6">
-            フィッティング検査フォーム（実装予定）
-          </Typography>
+          <Box>
+            <Typography variant="subtitle1" gutterBottom>
+              フィッティング検査 ({eyeside === 'Right' ? '右目' : '左目'})
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              実装予定
+            </Typography>
+            <input type="hidden" name="eyeside" value={eyeside} />
+            <input type="hidden" name="surveyId" value={mockSurveyData.surveyId} />
+            <input type="hidden" name="visitId" value={mockSurveyData.visitId} />
+          </Box>
         );
-      case 4:
-        return <Typography variant="h6">問診フォーム（実装予定）</Typography>;
       default:
-        return <Typography>不明なステップです</Typography>;
+        return (
+          <Box>
+            <Typography variant="subtitle1">不明なステップです</Typography>
+            <input type="hidden" name="eyeside" value={eyeside} />
+            <input type="hidden" name="surveyId" value={mockSurveyData.surveyId} />
+            <input type="hidden" name="visitId" value={mockSurveyData.visitId} />
+          </Box>
+        );
     }
   };
 
@@ -466,6 +493,15 @@ const ExaminationDataEntryMockup: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Dynamic Configuration Alert */}
+      <Alert severity="info" sx={{ mb: 3 }}>
+        <Typography variant="body2">
+          <strong>動的構成:</strong>{' '}
+          この検査フォームの構成は、臨床試験作成で設定されたVisitテンプレートに基づいて自動生成されています。
+          異なるVisitでは、設定された検査項目に応じて表示される検査ステップが動的に変更されます。
+        </Typography>
+      </Alert>
+
       {/* Dynamic Step Configuration */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -509,32 +545,56 @@ const ExaminationDataEntryMockup: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Left/Right Eye Tabs */}
+      {/* Left/Right Eye Parallel Input */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tabs
-              value={eyeTab}
-              onChange={(_, newValue) => setEyeTab(newValue)}
-            >
-              <Tab icon={<EyeIcon />} label="右目" sx={{ minHeight: 48 }} />
-              <Tab icon={<EyeIcon />} label="左目" sx={{ minHeight: 48 }} />
-            </Tabs>
-          </Box>
+          <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>
+            {steps[activeStep]} - 左右眼データ入力
+          </Typography>
+          
+          <Grid container spacing={3}>
+            {/* Right Eye Column */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{ 
+                border: '2px solid #1976d2', 
+                borderRadius: 2, 
+                p: 2,
+                backgroundColor: '#f3f7ff'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <EyeIcon sx={{ mr: 1, color: '#1976d2' }} />
+                  <Typography variant="h6" color="#1976d2">
+                    右目 (Right)
+                  </Typography>
+                </Box>
+                <Alert severity="info" sx={{ mb: 2, fontSize: '0.875rem' }}>
+                  Eyeside: "Right", SurveyId: {mockSurveyData.surveyId}, VisitId: {mockSurveyData.visitId}
+                </Alert>
+                {renderCurrentStepContent('Right')}
+              </Box>
+            </Grid>
 
-          <TabPanel value={eyeTab} index={0}>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              右目のデータを入力しています
-            </Alert>
-            {renderCurrentStepContent()}
-          </TabPanel>
-
-          <TabPanel value={eyeTab} index={1}>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              左目のデータを入力しています
-            </Alert>
-            {renderCurrentStepContent()}
-          </TabPanel>
+            {/* Left Eye Column */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{ 
+                border: '2px solid #d32f2f', 
+                borderRadius: 2, 
+                p: 2,
+                backgroundColor: '#fff3f3'
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <EyeIcon sx={{ mr: 1, color: '#d32f2f' }} />
+                  <Typography variant="h6" color="#d32f2f">
+                    左目 (Left)
+                  </Typography>
+                </Box>
+                <Alert severity="info" sx={{ mb: 2, fontSize: '0.875rem' }}>
+                  Eyeside: "Left", SurveyId: {mockSurveyData.surveyId}, VisitId: {mockSurveyData.visitId}
+                </Alert>
+                {renderCurrentStepContent('Left')}
+              </Box>
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
 

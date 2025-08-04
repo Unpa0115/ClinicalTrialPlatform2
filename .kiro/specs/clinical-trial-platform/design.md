@@ -433,11 +433,11 @@ interface BasicInfoRecord {
   cornealEndothelialCells: number; // Integer
   
   // Metadata
-  eyeSide: string; // 'right' | 'left'
+  eyeside: 'Right' | 'Left'; // 統一された眼側表記（自動入力）
   clinicalStudyId: string;
   organizationId: string;
   patientId: string;
-  surveyId: string;
+  surveyId: string; // 自動入力
   createdAt: string;
   updatedAt: string;
 }
@@ -458,11 +458,11 @@ interface VASRecord {
   visualPerformance_EndOfDay: number; // Integer (0-100)
   
   // Metadata
-  eyeSide: string; // 'right' | 'left'
+  eyeside: 'Right' | 'Left'; // 統一された眼側表記（自動入力）
   clinicalStudyId: string;
   organizationId: string;
   patientId: string;
-  surveyId: string;
+  surveyId: string; // 自動入力
   createdAt: string;
   updatedAt: string;
 }
@@ -927,6 +927,40 @@ class DraftDataRepository extends DynamoDBRepository {
   }
 }
 ```
+
+## User Interface Design
+
+### Dynamic Visit Configuration
+
+臨床試験作成画面では、研究責任者が柔軟にVisit構成を設定できるインターフェースを提供します：
+
+- **デフォルト構成**: 2つのVisit（ベースライン、1週間後フォローアップ）
+- **Visit管理**: 追加・削除機能（最低1つのVisit必須）
+- **検査項目選択**: 8種類の検査項目からチェックボックスで選択
+- **リアルタイムプレビュー**: 選択済み項目をChipで視覚化
+
+### 左右眼並列データ入力
+
+動的検査データ入力画面では、効率的なデータ入力のため左右眼を並列配置します：
+
+```
+┌─────────────────┬─────────────────┐
+│   右目 (Right)   │   左目 (Left)    │
+├─────────────────┼─────────────────┤
+│ Eyeside: "Right"│ Eyeside: "Left" │
+│ SurveyId: auto  │ SurveyId: auto  │
+│ VisitId: auto   │ VisitId: auto   │
+├─────────────────┼─────────────────┤
+│ [検査フォーム]    │ [検査フォーム]    │
+│                 │                 │
+└─────────────────┴─────────────────┘
+```
+
+**設計原則:**
+- 左右眼データを同時に入力可能
+- 自動フィールド入力（Eyeside, SurveyId, VisitId）
+- Visit構成に基づく動的フォーム生成
+- 視覚的な区別（色分け、アイコン）
 
 ## Components and Interfaces
 

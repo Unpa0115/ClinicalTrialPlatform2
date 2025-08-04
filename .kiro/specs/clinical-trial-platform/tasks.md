@@ -6,34 +6,41 @@
   - Set up Docker containers for development environment with DynamoDB Local
   - Configure AWS SDK v3 for DynamoDB integration
   - **Create UI mockups for critical workflows: clinical study creation, patient survey management, dynamic examination data entry, and data review**
+  - **Implement dynamic visit template configuration with add/remove functionality (default 2 visits)**
+  - **Implement examination item selection interface with 8 available examination types**
+  - **Create left/right eye parallel data entry interface with automatic field population (Eyeside, SurveyId, VisitId)**
   - Set up CI/CD pipeline with automated testing and deployment
-  - _Requirements: 10.1, 10.2, All UI-related requirements_
+  - _Requirements: 1.1, 4.1, 10.1, 10.2, All UI-related requirements_
 
-- [ ] 2. Validate mockups and implement DynamoDB database schema
-  - [ ] 2.1 Validate mockups with stakeholders and refine data requirements
+- [-] 2. Validate mockups and implement DynamoDB database schema
+  - [x] 2.1 Validate mockups with stakeholders and refine data requirements
     - Review UI mockups with clinical staff and data managers
     - Confirm dynamic examination configuration requirements
     - Validate patient master management workflow
     - Refine data structures based on UI feedback
     - _Requirements: All requirements validation_
 
-  - [ ] 2.2 Create DynamoDB table definitions and setup
+  - [-] 2.2 Create DynamoDB table definitions and setup
     - Design and create 16 DynamoDB tables (ClinicalStudy, Organizations, Users, Patients, Surveys, Visits, 8 examination tables, AuditLog, DraftData)
     - Configure table schemas with proper partition keys, sort keys, and GSI indexes based on validated UI requirements
+    - **Update examination table schemas to include standardized Eyeside field ('Right'/'Left') and automatic SurveyId/VisitId population**
     - Set up TTL configuration for DraftData table (30 days)
     - Create table creation scripts and CloudFormation templates
-    - _Requirements: 1.1, 2.1, 3.1_
+    - _Requirements: 1.1, 2.1, 3.1, 4.1_
 
-  - [ ] 2.2 Implement repository pattern for all data models
+  - [ ] 2.3 Implement repository pattern for all data models
     - Create base DynamoDBRepository class with common CRUD operations
     - Implement specific repositories for each table (ClinicalStudyRepository, OrganizationRepository, UserRepository, PatientRepository, etc.)
     - Add query optimization for visit-based data access patterns and organization-based patient search
-    - Implement batch operations for left/right eye data management
+    - **Implement batch operations for left/right eye data management with automatic Eyeside field population**
+    - **Create specialized methods for dynamic visit configuration and examination item management**
     - Write comprehensive unit tests for all repository methods
     - _Requirements: 1.1, 3.1, 4.1_
 
-  - [ ] 2.3 Create data validation and TypeScript interfaces
+  - [ ] 2.4 Create data validation and TypeScript interfaces
     - Define TypeScript interfaces for all 16 table records including flexible visit configuration support
+    - **Update examination data interfaces to include BaseExaminationData with Eyeside, SurveyId, VisitId fields**
+    - **Create specialized interfaces for BasicInfoExaminationData, VASExaminationData, ComparativeExaminationData, FittingExaminationData**
     - Implement data validation functions using Zod or similar library
     - Create data transformation utilities for API responses
     - Add error handling for DynamoDB operations

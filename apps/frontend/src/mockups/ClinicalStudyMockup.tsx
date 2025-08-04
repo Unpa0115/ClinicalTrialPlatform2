@@ -27,6 +27,10 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -39,7 +43,6 @@ import { useNavigate } from 'react-router-dom';
 
 const ClinicalStudyMockup: React.FC = () => {
   const navigate = useNavigate();
-  // const [openDialog] = useState(false); // Unused in mockup
   const [selectedStudy, setSelectedStudy] = useState<any>(null);
 
   // Mock data for clinical studies
@@ -68,8 +71,48 @@ const ClinicalStudyMockup: React.FC = () => {
     },
   ];
 
-  // Mock visit template data
-  const mockVisitTemplate = [
+  // Available examination types
+  const availableExaminations = [
+    {
+      id: 'basic-info',
+      name: '基礎情報',
+      description: '患者基本情報・屈折検査・眼圧測定',
+    },
+    { id: 'vas', name: 'VAS評価', description: '快適性・乾燥感のスケール評価' },
+    {
+      id: 'comparative',
+      name: '相対評価',
+      description: '前回レンズとの比較評価',
+    },
+    {
+      id: 'fitting',
+      name: 'フィッティング検査',
+      description: 'レンズフィッティング状態確認',
+    },
+    {
+      id: 'lens-inspection',
+      name: 'レンズ検査',
+      description: 'レンズ状態・汚れ・破損確認',
+    },
+    {
+      id: 'tear-film',
+      name: '涙液層検査',
+      description: '涙液層厚・安定性測定',
+    },
+    {
+      id: 'corrected-va',
+      name: '矯正視力検査',
+      description: 'レンズ装用時視力測定',
+    },
+    {
+      id: 'questionnaire',
+      name: '問診',
+      description: '自覚症状・使用感に関する問診',
+    },
+  ];
+
+  // Visit template state - default 2 visits
+  const [visitTemplate, setVisitTemplate] = useState([
     {
       visitNumber: 1,
       visitName: 'ベースライン訪問',
@@ -77,7 +120,7 @@ const ClinicalStudyMockup: React.FC = () => {
       scheduledDays: 0,
       windowBefore: 0,
       windowAfter: 3,
-      requiredExams: ['基礎情報', 'VAS', '相対評価', 'フィッティング検査'],
+      requiredExams: ['basic-info', 'vas', 'comparative', 'fitting'],
       isRequired: true,
     },
     {
@@ -87,26 +130,68 @@ const ClinicalStudyMockup: React.FC = () => {
       scheduledDays: 7,
       windowBefore: 2,
       windowAfter: 2,
-      requiredExams: ['VAS', '相対評価', 'レンズ検査', '問診'],
+      requiredExams: ['vas', 'comparative', 'lens-inspection', 'questionnaire'],
       isRequired: true,
     },
-    {
-      visitNumber: 3,
-      visitName: '1ヶ月後評価',
-      visitType: '1month',
+  ]);
+
+  // Visit management functions
+  const addVisit = () => {
+    const newVisitNumber =
+      Math.max(...visitTemplate.map((v) => v.visitNumber)) + 1;
+    const newVisit = {
+      visitNumber: newVisitNumber,
+      visitName: `Visit ${newVisitNumber}`,
+      visitType: 'custom',
       scheduledDays: 30,
-      windowBefore: 5,
-      windowAfter: 5,
-      requiredExams: [
-        '基礎情報',
-        'VAS',
-        '相対評価',
-        '涙液層検査',
-        '矯正視力検査',
-      ],
+      windowBefore: 3,
+      windowAfter: 3,
+      requiredExams: ['basic-info'],
       isRequired: true,
-    },
-  ];
+    };
+    setVisitTemplate([...visitTemplate, newVisit]);
+  };
+
+  const removeVisit = (visitNumber: number) => {
+    if (visitTemplate.length <= 1) {
+      alert('最低1つのVisitが必要です');
+      return;
+    }
+    setVisitTemplate(
+      visitTemplate.filter((v) => v.visitNumber !== visitNumber)
+    );
+  };
+
+  const updateVisit = (visitNumber: number, field: string, value: any) => {
+    setVisitTemplate(
+      visitTemplate.map((visit) =>
+        visit.visitNumber === visitNumber ? { ...visit, [field]: value } : visit
+      )
+    );
+  };
+
+  const updateVisitExaminations = (
+    visitNumber: number,
+    examId: string,
+    checked: boolean
+  ) => {
+    setVisitTemplate(
+      visitTemplate.map((visit) => {
+        if (visit.visitNumber === visitNumber) {
+          const updatedExams = checked
+            ? [...visit.requiredExams, examId]
+            : visit.requiredExams.filter((id) => id !== examId);
+          return { ...visit, requiredExams: updatedExams };
+        }
+        return visit;
+      })
+    );
+  };
+
+  const getExaminationName = (examId: string) => {
+    const exam = availableExaminations.find((e) => e.id === examId);
+    return exam ? exam.name : examId;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -218,10 +303,21 @@ const ClinicalStudyMockup: React.FC = () => {
               Visit テンプレート設定
             </Typography>
 
-            {mockVisitTemplate.map((visit, index) => (
-              <Accordion key={index} sx={{ mb: 1 }}>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              ここで設定したVisit構成と検査項目が、動的検査データ入力画面の構成を決定します。
+            </Alert>
+
+            {visitTemplate.map((visit) => (
+              <Accordion key={visit.visitNumber} sx={{ mb: 1 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      width: '100%',
+                    }}
+                  >
                     <Typography variant="subtitle1">
                       Visit {visit.visitNumber}: {visit.visitName}
                     </Typography>
@@ -230,41 +326,49 @@ const ClinicalStudyMockup: React.FC = () => {
                       size="small"
                       color={visit.isRequired ? 'primary' : 'default'}
                     />
+                    <Box sx={{ flexGrow: 1 }} />
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeVisit(visit.visitNumber);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={3}>
+                    <Grid item xs={12} md={6}>
                       <TextField
                         fullWidth
-                        label="予定日数"
-                        value={visit.scheduledDays}
-                        type="number"
+                        label="Visit名"
+                        value={visit.visitName}
                         size="small"
+                        onChange={(e) =>
+                          updateVisit(
+                            visit.visitNumber,
+                            'visitName',
+                            e.target.value
+                          )
+                        }
                       />
                     </Grid>
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        label="許容範囲（前）"
-                        value={visit.windowBefore}
-                        type="number"
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <TextField
-                        fullWidth
-                        label="許容範囲（後）"
-                        value={visit.windowAfter}
-                        type="number"
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
+                    <Grid item xs={12} md={6}>
                       <FormControl fullWidth size="small">
                         <InputLabel>Visit タイプ</InputLabel>
-                        <Select value={visit.visitType}>
+                        <Select
+                          value={visit.visitType}
+                          onChange={(e) =>
+                            updateVisit(
+                              visit.visitNumber,
+                              'visitType',
+                              e.target.value
+                            )
+                          }
+                        >
                           <MenuItem value="baseline">ベースライン</MenuItem>
                           <MenuItem value="1week">1週間後</MenuItem>
                           <MenuItem value="1month">1ヶ月後</MenuItem>
@@ -273,19 +377,137 @@ const ClinicalStudyMockup: React.FC = () => {
                         </Select>
                       </FormControl>
                     </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="予定日数"
+                        value={visit.scheduledDays}
+                        type="number"
+                        size="small"
+                        onChange={(e) =>
+                          updateVisit(
+                            visit.visitNumber,
+                            'scheduledDays',
+                            parseInt(e.target.value)
+                          )
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="許容範囲（前）"
+                        value={visit.windowBefore}
+                        type="number"
+                        size="small"
+                        onChange={(e) =>
+                          updateVisit(
+                            visit.visitNumber,
+                            'windowBefore',
+                            parseInt(e.target.value)
+                          )
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label="許容範囲（後）"
+                        value={visit.windowAfter}
+                        type="number"
+                        size="small"
+                        onChange={(e) =>
+                          updateVisit(
+                            visit.visitNumber,
+                            'windowAfter',
+                            parseInt(e.target.value)
+                          )
+                        }
+                      />
+                    </Grid>
+
+                    {/* Examination Selection */}
                     <Grid item xs={12}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        必須検査項目:
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ mt: 2 }}
+                      >
+                        検査項目選択:
+                      </Typography>
+                      <FormGroup>
+                        <Grid container spacing={1}>
+                          {availableExaminations.map((exam) => (
+                            <Grid item xs={12} sm={6} md={4} key={exam.id}>
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={visit.requiredExams.includes(
+                                      exam.id
+                                    )}
+                                    onChange={(e) =>
+                                      updateVisitExaminations(
+                                        visit.visitNumber,
+                                        exam.id,
+                                        e.target.checked
+                                      )
+                                    }
+                                    size="small"
+                                  />
+                                }
+                                label={
+                                  <Box>
+                                    <Typography
+                                      variant="body2"
+                                      fontWeight="medium"
+                                    >
+                                      {exam.name}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      {exam.description}
+                                    </Typography>
+                                  </Box>
+                                }
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </FormGroup>
+                    </Grid>
+
+                    {/* Selected Examinations Preview */}
+                    <Grid item xs={12}>
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ mt: 2 }}
+                      >
+                        選択済み検査項目 ({visit.requiredExams.length}項目):
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {visit.requiredExams.map((exam, examIndex) => (
+                        {visit.requiredExams.map((examId) => (
                           <Chip
-                            key={examIndex}
-                            label={exam}
+                            key={examId}
+                            label={getExaminationName(examId)}
                             size="small"
                             color="primary"
+                            onDelete={() =>
+                              updateVisitExaminations(
+                                visit.visitNumber,
+                                examId,
+                                false
+                              )
+                            }
                           />
                         ))}
+                        {visit.requiredExams.length === 0 && (
+                          <Typography variant="body2" color="text.secondary">
+                            検査項目が選択されていません
+                          </Typography>
+                        )}
                       </Box>
                     </Grid>
                   </Grid>
@@ -293,9 +515,22 @@ const ClinicalStudyMockup: React.FC = () => {
               </Accordion>
             ))}
 
-            <Button startIcon={<AddIcon />} variant="outlined" sx={{ mt: 2 }}>
-              Visit を追加
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Button
+                startIcon={<AddIcon />}
+                variant="outlined"
+                onClick={addVisit}
+              >
+                Visit を追加
+              </Button>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ alignSelf: 'center' }}
+              >
+                現在 {visitTemplate.length} 個のVisitが設定されています
+              </Typography>
+            </Box>
           </Box>
 
           <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>

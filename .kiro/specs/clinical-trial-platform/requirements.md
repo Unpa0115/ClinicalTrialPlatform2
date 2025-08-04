@@ -17,6 +17,18 @@
 3. WHEN a 研究責任者 activates a study THEN the system SHALL automatically generate survey templates for participating sites
 4. WHEN a 研究責任者 views study progress THEN the system SHALL display enrollment status, completion rates, and protocol deviations across all sites
 
+### Requirement 1.1
+
+**User Story:** As a 研究責任者, I want to dynamically configure visit templates with flexible examination selections, so that I can customize data collection requirements for different study protocols.
+
+#### Acceptance Criteria
+
+1. WHEN a 研究責任者 creates a clinical study THEN the system SHALL provide a default configuration with 2 visits (ベースライン and 1週間後フォローアップ)
+2. WHEN a 研究責任者 manages visit templates THEN the system SHALL allow adding new visits and removing existing visits (minimum 1 visit required)
+3. WHEN a 研究責任者 configures a visit THEN the system SHALL provide selection from available examination types: 基礎情報, VAS評価, 相対評価, フィッティング検査, レンズ検査, 涙液層検査, 矯正視力検査, 問診
+4. WHEN a 研究責任者 selects examination items for a visit THEN the system SHALL automatically configure the dynamic examination data entry forms for that visit
+5. WHEN a 研究責任者 saves visit configuration THEN the system SHALL validate that each visit has at least one examination item selected
+
 ### Requirement 2
 
 **User Story:** As a 組織管理者, I want to manage organization information and user access controls, so that I can ensure proper authorization and data security across multiple research organizations.
@@ -48,6 +60,9 @@
 1. WHEN a 検査者 starts data entry for a visit THEN the system SHALL present a dynamic multi-step form based on the visit's examination configuration (可変ステップ数)
 2. WHEN entering 基礎情報 data THEN the system SHALL provide fields for both eyes including: 現在使用CL, 角膜曲率半径(R1/R2/Ave), 屈折検査(VA/S/C/Ax), 眼圧, 角膜内皮細胞
 3. WHEN entering VAS data THEN the system SHALL provide visual analog scale inputs (0-100) for comfort level, dryness level, and visual performance assessments
+4. WHEN a 検査者 enters examination data THEN the system SHALL display left and right eye input forms in parallel columns (左右眼並列配置) for simultaneous data entry
+5. WHEN examination data is saved THEN the system SHALL automatically populate Eyeside field with "Right" or "Left", SurveyId, and VisitId based on the current examination context
+6. WHEN a 検査者 navigates between examination steps THEN the system SHALL maintain data consistency and provide auto-save functionality for draft data
 4. WHEN entering 相対評価 data THEN the system SHALL provide comparative assessment fields with reason text for comfort, dryness, visual performance, eye strain, and total satisfaction
 5. WHEN entering フィッティング・涙濡れ性検査 data THEN the system SHALL provide detailed fitting assessment fields including lens movement, position, wettability, and FACE2 coordinates
 6. WHEN entering 涙液層検査 data THEN the system SHALL provide tear film assessment fields including break-up time, Schirmer test, and meniscus measurements

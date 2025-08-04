@@ -209,3 +209,64 @@ export interface UserRecord {
   updatedAt: string;
   entityType: 'user';
 }
+
+// Examination Data Types
+export interface BaseExaminationData {
+  surveyId: string;
+  visitId: string;
+  patientId: string;
+  clinicalStudyId: string;
+  organizationId: string;
+  eyeside: 'Right' | 'Left';
+  examinationDate: string;
+  conductedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BasicInfoExaminationData extends BaseExaminationData {
+  currentUsedCL?: string;
+  cornealCurvature?: {
+    r1: number;
+    r2: number;
+    average: number;
+  };
+  refraction?: {
+    va: number;
+    s: number;
+    c: number;
+    ax: number;
+  };
+  intraocularPressure?: number[];
+  cornealEndothelialCells?: number;
+  entityType: 'basic-info-examination';
+}
+
+export interface VASExaminationData extends BaseExaminationData {
+  comfortLevel: number; // 0-100
+  drynessLevel: number; // 0-100
+  visualPerformanceDaytime: number; // 0-100
+  visualPerformanceEndOfDay: number; // 0-100
+  entityType: 'vas-examination';
+}
+
+export interface ComparativeExaminationData extends BaseExaminationData {
+  comfort: 'much_better' | 'better' | 'same' | 'worse' | 'much_worse';
+  comfortReason?: string;
+  dryness: 'much_better' | 'better' | 'same' | 'worse' | 'much_worse';
+  drynessReason?: string;
+  digitalDeviceUse: 'much_better' | 'better' | 'same' | 'worse' | 'much_worse';
+  digitalDeviceReason?: string;
+  eyeFatigue: 'much_better' | 'better' | 'same' | 'worse' | 'much_worse';
+  overallSatisfaction?: string;
+  entityType: 'comparative-examination';
+}
+
+export interface FittingExaminationData extends BaseExaminationData {
+  lensMovement?: string;
+  centration?: string;
+  tightness?: string;
+  overallFitting?: string;
+  notes?: string;
+  entityType: 'fitting-examination';
+}
