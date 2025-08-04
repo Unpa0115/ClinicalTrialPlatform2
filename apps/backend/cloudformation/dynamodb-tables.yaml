@@ -1,0 +1,460 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'DynamoDB tables for Clinical Trial Platform'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: 'dev'
+    AllowedValues: ['dev', 'staging', 'prod']
+    Description: 'Environment name'
+  
+  ReadCapacityUnits:
+    Type: Number
+    Default: 5
+    Description: 'Read capacity units for tables'
+  
+  WriteCapacityUnits:
+    Type: Number
+    Default: 5
+    Description: 'Write capacity units for tables'
+
+Resources:
+  # 1. ClinicalStudy Table
+  ClinicalStudyTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-ClinicalStudy'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: clinicalStudyId
+          AttributeType: S
+        - AttributeName: entityType
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: clinicalStudyId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: EntityTypeIndex
+          KeySchema:
+            - AttributeName: entityType
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 2. Organizations Table
+  OrganizationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Organizations'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: organizationId
+          AttributeType: S
+        - AttributeName: entityType
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: organizationId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: EntityTypeIndex
+          KeySchema:
+            - AttributeName: entityType
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 3. Users Table
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Users'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: username
+          AttributeType: S
+        - AttributeName: primaryOrganizationId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UsernameIndex
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+        - IndexName: OrganizationIndex
+          KeySchema:
+            - AttributeName: primaryOrganizationId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 4. Patients Table
+  PatientsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Patients'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: patientId
+          AttributeType: S
+        - AttributeName: registeredOrganizationId
+          AttributeType: S
+        - AttributeName: patientCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: patientId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: OrganizationIndex
+          KeySchema:
+            - AttributeName: registeredOrganizationId
+              KeyType: HASH
+            - AttributeName: patientCode
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 5. Surveys Table
+  SurveysTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Surveys'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: surveyId
+          AttributeType: S
+        - AttributeName: clinicalStudyId
+          AttributeType: S
+        - AttributeName: organizationId
+          AttributeType: S
+        - AttributeName: patientId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: surveyId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: StudyIndex
+          KeySchema:
+            - AttributeName: clinicalStudyId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+        - IndexName: OrganizationIndex
+          KeySchema:
+            - AttributeName: organizationId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+        - IndexName: PatientIndex
+          KeySchema:
+            - AttributeName: patientId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 6. Visits Table
+  VisitsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-Visits'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: surveyId
+          AttributeType: S
+        - AttributeName: visitId
+          AttributeType: S
+        - AttributeName: clinicalStudyId
+          AttributeType: S
+        - AttributeName: organizationId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: surveyId
+          KeyType: HASH
+        - AttributeName: visitId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: StudyIndex
+          KeySchema:
+            - AttributeName: clinicalStudyId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+        - IndexName: OrganizationIndex
+          KeySchema:
+            - AttributeName: organizationId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 7-14. Examination Tables (BasicInfo, VAS, ComparativeScores, etc.)
+  BasicInfoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-BasicInfo'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: visitId
+          AttributeType: S
+        - AttributeName: basicInfoId
+          AttributeType: S
+        - AttributeName: surveyId
+          AttributeType: S
+        - AttributeName: eyeside
+          AttributeType: S
+      KeySchema:
+        - AttributeName: visitId
+          KeyType: HASH
+        - AttributeName: basicInfoId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: SurveyIndex
+          KeySchema:
+            - AttributeName: surveyId
+              KeyType: HASH
+            - AttributeName: eyeside
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 15. AuditLog Table
+  AuditLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-AuditLog'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: logId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: targetType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: logId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: UserIndex
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+        - IndexName: TargetTypeIndex
+          KeySchema:
+            - AttributeName: targetType
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: !Ref ReadCapacityUnits
+            WriteCapacityUnits: !Ref WriteCapacityUnits
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+  # 16. DraftData Table with TTL
+  DraftDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${Environment}-DraftData'
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: visitId
+          AttributeType: S
+        - AttributeName: draftId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: visitId
+          KeyType: HASH
+        - AttributeName: draftId
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref ReadCapacityUnits
+        WriteCapacityUnits: !Ref WriteCapacityUnits
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ClinicalTrialPlatform
+
+Outputs:
+  ClinicalStudyTableName:
+    Description: 'ClinicalStudy table name'
+    Value: !Ref ClinicalStudyTable
+    Export:
+      Name: !Sub '${Environment}-ClinicalStudyTable'
+  
+  OrganizationsTableName:
+    Description: 'Organizations table name'
+    Value: !Ref OrganizationsTable
+    Export:
+      Name: !Sub '${Environment}-OrganizationsTable'
+  
+  UsersTableName:
+    Description: 'Users table name'
+    Value: !Ref UsersTable
+    Export:
+      Name: !Sub '${Environment}-UsersTable'
+  
+  PatientsTableName:
+    Description: 'Patients table name'
+    Value: !Ref PatientsTable
+    Export:
+      Name: !Sub '${Environment}-PatientsTable'
+  
+  SurveysTableName:
+    Description: 'Surveys table name'
+    Value: !Ref SurveysTable
+    Export:
+      Name: !Sub '${Environment}-SurveysTable'
+  
+  VisitsTableName:
+    Description: 'Visits table name'
+    Value: !Ref VisitsTable
+    Export:
+      Name: !Sub '${Environment}-VisitsTable'
+  
+  DraftDataTableName:
+    Description: 'DraftData table name'
+    Value: !Ref DraftDataTable
+    Export:
+      Name: !Sub '${Environment}-DraftDataTable'

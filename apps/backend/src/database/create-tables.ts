@@ -130,17 +130,15 @@ async function createAllTables(): Promise<void> {
   }
 }
 
-// Run the script
-if (require.main === module) {
-  createAllTables()
-    .then(() => {
-      console.log('✅ Table creation completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Table creation failed:', error);
-      process.exit(1);
-    });
-}
+// Run the script when executed directly
+createAllTables()
+  .then(() => {
+    console.log('✅ Table creation completed');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Table creation failed:', error);
+    process.exit(1);
+  });
 
 export { createAllTables, createTable, configureTTL };
