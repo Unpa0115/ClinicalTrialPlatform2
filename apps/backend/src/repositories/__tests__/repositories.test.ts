@@ -261,4 +261,251 @@ describe('Repository Integration Tests', () => {
       expect(bothEyesData.left).toBeNull();
     });
   });
+
+  describe('ComparativeScoresRepository', () => {
+    it('should create and validate comparative scores data', async () => {
+      const comparativeRepo = repositoryFactory.getComparativeScoresRepository();
+      
+      const visitId = 'visit-comp-123';
+      const surveyId = 'survey-comp-123';
+      const patientId = 'patient-comp-123';
+      const clinicalStudyId = 'study-comp-123';
+      const organizationId = 'org-comp-123';
+      
+      const comparativeData = {
+        comfort: 'better',
+        comfortReason: 'Improved lens design',
+        dryness: 'much_better',
+        drynessReason: 'Enhanced moisture retention',
+        vp_DigitalDevice: 'better',
+        vpReason_DigitalDevice: 'Clearer screen viewing',
+        vp_DayTime: 'same',
+        vpReason_DayTime: 'No significant change',
+        vp_EndOfDay: 'better',
+        vpReason_EndOfDay: 'Less fatigue',
+        vp_Glare: 'same',
+        vpReason_Glare: 'No change noted',
+        vp_Halo: 'same',
+        vpReason_Halo: 'Stable performance',
+        vp_StarBurst: 'better',
+        vpReason_StarBurst: 'Reduced visual artifacts',
+        eyeStrain: 'better',
+        eyeStrainReason: 'More comfortable wear',
+        totalSatisfaction: 'better',
+        totalSatisfactionReason: 'Overall improvement'
+      };
+
+      const created = await comparativeRepo.createComparativeScores(
+        visitId, surveyId, patientId, clinicalStudyId, organizationId,
+        'Right', comparativeData
+      );
+
+      expect(created.comparativeScoresId).toBeDefined();
+      expect(created.comfort).toBe('better');
+      expect(created.comfortReason).toBe('Improved lens design');
+      expect(created.eyeside).toBe('Right');
+    });
+
+    it('should validate invalid assessment values', async () => {
+      const comparativeRepo = repositoryFactory.getComparativeScoresRepository();
+      
+      const invalidData = {
+        comfort: 'invalid_value', // Invalid assessment
+        comfortReason: 'Test reason'
+      } as any;
+
+      await expect(
+        comparativeRepo.createComparativeScores(
+          'test-visit', 'test-survey', 'test-patient', 'test-study', 'test-org',
+          'Right', invalidData
+        )
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('LensFluidSurfaceAssessmentRepository', () => {
+    it('should create lens fitting assessment data', async () => {
+      const fittingRepo = repositoryFactory.getLensFluidSurfaceAssessmentRepository();
+      
+      const visitId = 'visit-fit-123';
+      const surveyId = 'survey-fit-123';
+      const patientId = 'patient-fit-123';
+      const clinicalStudyId = 'study-fit-123';
+      const organizationId = 'org-fit-123';
+      
+      const fittingData = {
+        timing: 'after_15min',
+        lensMovement: 1.2,
+        lensPosition: 'optimal',
+        fittingPattern: 'ideal',
+        lensWettability: 'excellent',
+        surfaceDeposit: 'minimal',
+        lensDryness: 'none',
+        face2_X: 0.1,
+        face2_Y: -0.2
+      };
+
+      const created = await fittingRepo.createLensFluidSurfaceAssessment(
+        visitId, surveyId, patientId, clinicalStudyId, organizationId,
+        'Right', fittingData
+      );
+
+      expect(created.fittingId).toBeDefined();
+      expect(created.lensMovement).toBe(1.2);
+      expect(created.face2_X).toBe(0.1);
+      expect(created.face2_Y).toBe(-0.2);
+      expect(created.eyeside).toBe('Right');
+    });
+
+    it('should validate FACE2 coordinates within range', async () => {
+      const fittingRepo = repositoryFactory.getLensFluidSurfaceAssessmentRepository();
+      
+      const invalidData = {
+        timing: 'initial',
+        lensMovement: 1.0,
+        lensPosition: 'optimal',
+        fittingPattern: 'ideal',
+        lensWettability: 'good',
+        surfaceDeposit: 'none',
+        lensDryness: 'none',
+        face2_X: 10.0, // Out of range (-5 to +5)
+        face2_Y: 0.0
+      };
+
+      await expect(
+        fittingRepo.createLensFluidSurfaceAssessment(
+          'test-visit', 'test-survey', 'test-patient', 'test-study', 'test-org',
+          'Right', invalidData
+        )
+      ).rejects.toThrow('face2_X must be between -5 and +5');
+    });
+  });
+
+  describe('DR1Repository', () => {
+    it('should create tear film assessment data', async () => {
+      const dr1Repo = repositoryFactory.getDR1Repository();
+      
+      const visitId = 'visit-dr1-123';
+      const surveyId = 'survey-dr1-123';
+      const patientId = 'patient-dr1-123';
+      const clinicalStudyId = 'study-dr1-123';
+      const organizationId = 'org-dr1-123';
+      
+      const dr1Data = {
+        tearBreakUpTime: 8.5,
+        schirmerTest: 12,
+        tearMeniscusHeight: 0.25,
+        tearQuality: 'good',
+        blinkingPattern: 'normal'
+      };
+
+      const created = await dr1Repo.createDR1(
+        visitId, surveyId, patientId, clinicalStudyId, organizationId,
+        'Right', dr1Data
+      );
+
+      expect(created.dr1Id).toBeDefined();
+      expect(created.tearBreakUpTime).toBe(8.5);
+      expect(created.schirmerTest).toBe(12);
+      expect(created.tearQuality).toBe('good');
+      expect(created.eyeside).toBe('Right');
+    });
+
+    it('should validate tear film measurement ranges', async () => {
+      const dr1Repo = repositoryFactory.getDR1Repository();
+      
+      const invalidData = {
+        tearBreakUpTime: 35.0, // Out of range (1-30 seconds)
+        schirmerTest: 10,
+        tearMeniscusHeight: 0.3,
+        tearQuality: 'good',
+        blinkingPattern: 'normal'
+      };
+
+      await expect(
+        dr1Repo.createDR1(
+          'test-visit', 'test-survey', 'test-patient', 'test-study', 'test-org',
+          'Right', invalidData
+        )
+      ).rejects.toThrow('Tear break-up time must be between 1 and 30 seconds');
+    });
+  });
+
+  describe('Enhanced DraftDataRepository', () => {
+    it('should validate form data completeness', async () => {
+      const draftRepo = repositoryFactory.getDraftDataRepository();
+      
+      const visitId = 'visit-validation-123';
+      const formData = {
+        'basicInfo': {
+          right: { currentUsedCL: 'Test Lens' },
+          // Missing left eye data
+        },
+        'vas': {
+          right: { comfortLevel: 75 },
+          left: { comfortLevel: 70 }
+        }
+      };
+      
+      await draftRepo.saveDraft(
+        visitId, formData, 1, 2, ['basicInfo'], ['basicInfo', 'vas']
+      );
+
+      const validation = await draftRepo.validateFormData(visitId);
+      
+      expect(validation.isValid).toBe(false);
+      expect(validation.warnings).toContain('basicInfo - missing left eye data');
+    });
+
+    it('should get completion summary', async () => {
+      const draftRepo = repositoryFactory.getDraftDataRepository();
+      
+      const visitId = 'visit-completion-123';
+      const formData = {
+        'basicInfo': {
+          right: { currentUsedCL: 'Test' },
+          left: { currentUsedCL: 'Test' }
+        },
+        'vas': {
+          right: { comfortLevel: 75 }
+          // Missing left eye
+        },
+        'dr1': {
+          // No data
+        }
+      };
+      
+      await draftRepo.saveDraft(
+        visitId, formData, 1, 3, ['basicInfo'], ['basicInfo', 'vas', 'dr1']
+      );
+
+      const summary = await draftRepo.getCompletionSummary(visitId);
+      
+      expect(summary).not.toBeNull();
+      expect(summary?.totalExaminations).toBe(3);
+      expect(summary?.completedExaminations).toBe(1); // Only basicInfo has both eyes
+      expect(summary?.partiallyCompleted).toBe(1); // VAS has only right eye
+      expect(summary?.notStarted).toBe(1); // DR1 has no data
+      expect(summary?.readyForSubmission).toBe(false);
+    });
+
+    it('should handle auto-save with conflict detection', async () => {
+      const draftRepo = repositoryFactory.getDraftDataRepository();
+      
+      const visitId = 'visit-autosave-123';
+      
+      // Initialize draft
+      await draftRepo.saveDraft(
+        visitId, {}, 0, 2, [], ['basicInfo', 'vas']
+      );
+
+      // Simulate auto-save
+      const autoSaveResult = await draftRepo.autoSave(visitId, {
+        formData: { basicInfo: { right: { currentUsedCL: 'Updated' } } }
+      });
+
+      expect(autoSaveResult.success).toBe(true);
+      expect(autoSaveResult.latestDraft).toBeDefined();
+    });
+  });
 });

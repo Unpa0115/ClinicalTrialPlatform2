@@ -35,6 +35,10 @@ export abstract class BaseExaminationRepository<T extends BaseExaminationData> e
     return this.getExaminationIdFieldName();
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    return null;
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     switch (indexName) {
       case indexNames.surveyIndex:

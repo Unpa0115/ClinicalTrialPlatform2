@@ -19,6 +19,15 @@ export class PatientRepository extends BaseRepository<PatientRecord> {
     return null;
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    switch (indexName) {
+      case indexNames.organizationIndex:
+        return 'registeredOrganizationId';
+      default:
+        return null;
+    }
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     switch (indexName) {
       case indexNames.organizationIndex:

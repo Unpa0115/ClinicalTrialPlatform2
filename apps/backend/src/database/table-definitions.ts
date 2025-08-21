@@ -127,6 +127,10 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         AttributeType: 'S',
       },
       {
+        AttributeName: 'cognitoSub',
+        AttributeType: 'S',
+      },
+      {
         AttributeName: 'primaryOrganizationId',
         AttributeType: 'S',
       },
@@ -137,6 +141,22 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         KeySchema: [
           {
             AttributeName: 'username',
+            KeyType: 'HASH',
+          },
+        ],
+        Projection: {
+          ProjectionType: 'ALL',
+        },
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 5,
+          WriteCapacityUnits: 5,
+        },
+      },
+      {
+        IndexName: 'CognitoSubIndex',
+        KeySchema: [
+          {
+            AttributeName: 'cognitoSub',
             KeyType: 'HASH',
           },
         ],

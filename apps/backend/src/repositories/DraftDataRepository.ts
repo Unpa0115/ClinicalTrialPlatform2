@@ -39,6 +39,10 @@ export class DraftDataRepository extends BaseRepository<DraftRecord> {
     return 'draftId';
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    return null;
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     return null;
   }
@@ -278,5 +282,260 @@ export class DraftDataRepository extends BaseRepository<DraftRecord> {
     const timeDiff = now - lastSavedTime;
 
     return timeDiff > 30000 && !draft.autoSaved; // 30 seconds
+  }
+
+  /**
+   * Validate examination data before saving to individual tables
+   */
+  async validateFormData(visitId: string): Promise<{
+    isValid: boolean;
+    errors: string[];
+    warnings: string[];
+    missingRequired: string[];
+  }> {
+    const draft = await this.getDraft(visitId);
+    if (!draft) {
+      return {
+        isValid: false,
+        errors: ['No draft data found'],
+        warnings: [],
+        missingRequired: []
+      };
+    }
+
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const missingRequired: string[] = [];
+
+    // Check if all required examinations have data for both eyes
+    draft.examinationOrder.forEach(examId => {
+      const examData = draft.formData[examId];
+      if (!examData || (!examData.right && !examData.left)) {
+        missingRequired.push(`${examId} - no data for either eye`);
+      } else {
+        if (!examData.right) warnings.push(`${examId} - missing right eye data`);
+        if (!examData.left) warnings.push(`${examId} - missing left eye data`);
+      }
+    });
+
+    // Validate data consistency
+    Object.entries(draft.formData).forEach(([examId, examData]) => {
+      if (examData.right && examData.left) {
+        // Check for significant discrepancies between eyes (placeholder logic)
+        // This could be expanded with specific validation rules per examination type
+        const hasDiscrepancies = this.checkEyeDataConsistency(examData.right, examData.left, examId);
+        if (hasDiscrepancies) {
+          warnings.push(`${examId} - significant difference between right and left eye data`);
+        }
+      }
+    });
+
+    const isValid = errors.length === 0 && missingRequired.length === 0;
+
+    return {
+      isValid,
+      errors,
+      warnings,
+      missingRequired
+    };
+  }
+
+  /**
+   * Get form completion summary
+   */
+  async getCompletionSummary(visitId: string): Promise<{
+    totalExaminations: number;
+    completedExaminations: number;
+    partiallyCompleted: number;
+    notStarted: number;
+    examinationStatus: {
+      [examId: string]: {
+        status: 'completed' | 'partial' | 'not_started';
+        rightEye: boolean;
+        leftEye: boolean;
+        lastUpdated?: string;
+      };
+    };
+    readyForSubmission: boolean;
+  } | null> {
+    const draft = await this.getDraft(visitId);
+    if (!draft) {
+      return null;
+    }
+
+    const examinationStatus: any = {};
+    let completedExaminations = 0;
+    let partiallyCompleted = 0;
+    let notStarted = 0;
+
+    draft.examinationOrder.forEach(examId => {
+      const examData = draft.formData[examId];
+      const hasRightEye = !!(examData?.right);
+      const hasLeftEye = !!(examData?.left);
+
+      let status: 'completed' | 'partial' | 'not_started';
+      if (hasRightEye && hasLeftEye) {
+        status = 'completed';
+        completedExaminations++;
+      } else if (hasRightEye || hasLeftEye) {
+        status = 'partial';
+        partiallyCompleted++;
+      } else {
+        status = 'not_started';
+        notStarted++;
+      }
+
+      examinationStatus[examId] = {
+        status,
+        rightEye: hasRightEye,
+        leftEye: hasLeftEye,
+        lastUpdated: draft.lastSaved
+      };
+    });
+
+    const readyForSubmission = completedExaminations === draft.examinationOrder.length;
+
+    return {
+      totalExaminations: draft.examinationOrder.length,
+      completedExaminations,
+      partiallyCompleted,
+      notStarted,
+      examinationStatus,
+      readyForSubmission
+    };
+  }
+
+  /**
+   * Auto-save with conflict detection
+   */
+  async autoSave(
+    visitId: string,
+    updates: Partial<Omit<DraftRecord, 'visitId' | 'draftId' | 'ttl' | 'lastSaved' | 'autoSaved'>>
+  ): Promise<{
+    success: boolean;
+    conflict?: boolean;
+    latestDraft?: DraftRecord;
+  }> {
+    try {
+      const existingDraft = await this.getDraft(visitId);
+      if (!existingDraft) {
+        return { success: false };
+      }
+
+      // Check for potential conflicts (if draft was modified by another session)
+      const lastSavedTime = new Date(existingDraft.lastSaved).getTime();
+      const now = Date.now();
+      const timeSinceLastSave = now - lastSavedTime;
+
+      // If draft was saved very recently by another session, there might be a conflict
+      if (timeSinceLastSave < 5000 && existingDraft.autoSaved) { // 5 seconds
+        return {
+          success: false,
+          conflict: true,
+          latestDraft: existingDraft
+        };
+      }
+
+      const updatedDraft = await this.updateDraft(visitId, {
+        ...updates,
+        autoSaved: true
+      });
+
+      return { success: true, latestDraft: updatedDraft };
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      return { success: false };
+    }
+  }
+
+  /**
+   * Get draft restoration information
+   */
+  async getDraftRestorationInfo(visitId: string): Promise<{
+    canRestore: boolean;
+    lastSaved?: string;
+    completionPercentage?: number;
+    availableExaminations?: string[];
+    nextStep?: number;
+    examinationOrder?: string[];
+  }> {
+    const draft = await this.getDraft(visitId);
+    if (!draft) {
+      return { canRestore: false };
+    }
+
+    const availableExaminations = Object.keys(draft.formData).filter(examId => {
+      const examData = draft.formData[examId];
+      return examData && (examData.right || examData.left);
+    });
+
+    const completionPercentage = draft.totalSteps > 0 
+      ? Math.round((draft.completedSteps.length / draft.totalSteps) * 100)
+      : 0;
+
+    return {
+      canRestore: true,
+      lastSaved: draft.lastSaved,
+      completionPercentage,
+      availableExaminations,
+      nextStep: draft.currentStep,
+      examinationOrder: draft.examinationOrder
+    };
+  }
+
+  /**
+   * Create backup before major operations
+   */
+  async createBackup(visitId: string): Promise<string | null> {
+    const draft = await this.getDraft(visitId);
+    if (!draft) {
+      return null;
+    }
+
+    const backupId = `backup-${Date.now()}`;
+    const backupRecord: DraftRecord = {
+      ...draft,
+      draftId: backupId as any,
+      lastSaved: new Date().toISOString(),
+      ttl: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days for backup
+    };
+
+    await this.create(backupRecord);
+    return backupId;
+  }
+
+  /**
+   * Clean up expired drafts (to be called by maintenance job)
+   */
+  async cleanupExpiredDrafts(): Promise<number> {
+    // This would typically be implemented with a scan operation
+    // For now, returning 0 as this would be handled by DynamoDB TTL
+    return 0;
+  }
+
+  /**
+   * Helper method to check eye data consistency
+   */
+  private checkEyeDataConsistency(rightData: any, leftData: any, examId: string): boolean {
+    // Placeholder implementation - would contain examination-specific validation
+    // For example, checking if measurements are within reasonable ranges between eyes
+    
+    if (examId === 'basicInfo') {
+      // Check if visual acuity is drastically different between eyes
+      if (rightData.va && leftData.va) {
+        const vaDiff = Math.abs(parseFloat(rightData.va) - parseFloat(leftData.va));
+        return vaDiff > 0.3; // Flag if difference > 3 lines of vision
+      }
+    }
+    
+    if (examId === 'vas') {
+      // Check if VAS scores are dramatically different
+      if (rightData.comfortLevel && leftData.comfortLevel) {
+        const comfortDiff = Math.abs(rightData.comfortLevel - leftData.comfortLevel);
+        return comfortDiff > 30; // Flag if difference > 30 points
+      }
+    }
+    
+    return false; // No significant discrepancies detected
   }
 }

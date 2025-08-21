@@ -3,17 +3,26 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
+const region = process.env.AWS_REGION || 'ap-northeast-1';
+
+// DEBUG: Log the actual configuration being used
+console.log('DynamoDB Configuration:');
+console.log('AWS_REGION:', region);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('ENVIRONMENT:', process.env.ENVIRONMENT);
+
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'ap-northeast-1',
-  endpoint: isDevelopment
-    ? process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000'
-    : undefined,
-  credentials: isDevelopment
-    ? {
-        accessKeyId: 'dummy',
-        secretAccessKey: 'dummy',
-      }
-    : undefined,
+  region: 'ap-northeast-1', // Hardcode for testing
+  // Remove local DynamoDB endpoint to use AWS DynamoDB
+  // endpoint: isDevelopment
+  //   ? process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000'
+  //   : undefined,
+  // credentials: isDevelopment
+  //   ? {
+  //       accessKeyId: 'dummy',
+  //       secretAccessKey: 'dummy',
+  //     }
+  //   : undefined,
 });
 
 export const docClient = DynamoDBDocumentClient.from(client, {
@@ -32,9 +41,10 @@ export { client as dynamoClient };
 // Table names configuration with environment prefix support
 const environment = process.env.ENVIRONMENT || 'dev';
 const getTableName = (baseName: string): string => {
-  return process.env.NODE_ENV === 'production' 
-    ? `${environment}-${baseName}`
-    : baseName;
+  // Always use the environment prefix for CloudFormation-created tables
+  const tableName = `${environment}-${baseName}`;
+  console.log(`Generated table name for ${baseName}: ${tableName}`);
+  return tableName;
 };
 
 export const tableNames = {

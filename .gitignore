@@ -1,1 +1,7 @@
 node_modules
+
+# Environment files with sensitive data
+.env
+.env.local
+apps/backend/.env
+apps/frontend/.env.local

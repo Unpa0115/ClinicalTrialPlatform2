@@ -19,6 +19,10 @@ export class SurveyRepository extends BaseRepository<SurveyRecord> {
     return null;
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    return null;
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     return null; // All GSIs use single key
   }

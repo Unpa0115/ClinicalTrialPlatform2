@@ -19,6 +19,15 @@ export class ClinicalStudyRepository extends BaseRepository<ClinicalStudyRecord>
     return null;
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    switch (indexName) {
+      case indexNames.entityTypeIndex:
+        return 'entityType';
+      default:
+        return null;
+    }
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     switch (indexName) {
       case indexNames.entityTypeIndex:
@@ -38,7 +47,7 @@ export class ClinicalStudyRepository extends BaseRepository<ClinicalStudyRecord>
     const study: ClinicalStudyRecord = {
       ...studyData,
       clinicalStudyId: studyId,
-      entityType: 'clinical-study',
+      entityType: 'clinicalStudy',
       createdAt: now,
       updatedAt: now,
     };
@@ -50,7 +59,7 @@ export class ClinicalStudyRepository extends BaseRepository<ClinicalStudyRecord>
    * Find studies by status
    */
   async findByStatus(status: ClinicalStudyRecord['status']): Promise<ClinicalStudyRecord[]> {
-    const result = await this.queryByPartitionKey('clinical-study', {
+    const result = await this.queryByPartitionKey('clinicalStudy', {
       indexName: indexNames.entityTypeIndex,
       sortKeyCondition: '=',
       sortKeyValue: status,
@@ -63,7 +72,10 @@ export class ClinicalStudyRepository extends BaseRepository<ClinicalStudyRecord>
    * Find all active studies
    */
   async findActiveStudies(): Promise<ClinicalStudyRecord[]> {
-    return await this.findByStatus('active');
+    // Include both 'active' and 'recruiting' as active studies
+    const activeStudies = await this.findByStatus('active');
+    const recruitingStudies = await this.findByStatus('recruiting');
+    return [...activeStudies, ...recruitingStudies];
   }
 
   /**
@@ -128,5 +140,12 @@ export class ClinicalStudyRepository extends BaseRepository<ClinicalStudyRecord>
 
     const updatedOrganizations = study.targetOrganizations.filter(id => id !== organizationId);
     return await this.update(studyId, { targetOrganizations: updatedOrganizations });
+  }
+
+  /**
+   * Delete clinical study by ID
+   */
+  async deleteById(studyId: string): Promise<void> {
+    await this.delete(studyId);
   }
 }

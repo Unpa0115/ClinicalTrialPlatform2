@@ -19,6 +19,10 @@ export class VisitRepository extends BaseRepository<VisitRecord> {
     return 'visitId';
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    return null;
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     return null; // All GSIs use single key
   }
@@ -81,11 +85,15 @@ export class VisitRepository extends BaseRepository<VisitRecord> {
    * Update visit status
    */
   async updateStatus(
-    surveyId: string, 
     visitId: string, 
     status: VisitRecord['status']
   ): Promise<VisitRecord> {
-    return await this.update(surveyId, { status }, visitId);
+    // Find the visit first to get the surveyId
+    const visit = await this.findById(visitId);
+    if (!visit) {
+      throw new Error(`Visit ${visitId} not found`);
+    }
+    return await this.update(visit.surveyId, { status }, visitId);
   }
 
   /**

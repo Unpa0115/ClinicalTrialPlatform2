@@ -47,33 +47,38 @@
     - Write integration tests with DynamoDB Local
     - _Requirements: 4.1, 8.1_
 
-- [ ] 3. Implement authentication and authorization system
-  - [ ] 3.1 Create user management and authentication service
-    - Implement Users table operations with password hashing and security features
-    - Create JWT token generation and validation middleware
-    - Set up multi-factor authentication support
-    - Implement session management with security controls
-    - Write unit tests for authentication flows
+- [x] 3. Implement authentication and authorization system
+  - [x] 3.1 Create user management and authentication service with AWS Cognito (existing User Pool configured)
+    - Implement Users table operations for user profile data storage (extend Cognito user data)
+    - Verify and configure Cognito Identity Pool for DynamoDB access control (if needed)
+    - Implement Cognito SDK integration for user registration, login, and password reset flows
+    - Configure and verify multi-factor authentication (MFA) settings in existing Cognito User Pool
+    - Create middleware for Cognito JWT token validation using existing client configurations
+    - Implement session management with Cognito tokens (access/refresh token handling)
+    - Write unit tests for Cognito authentication flows with existing configuration
     - _Requirements: 2.1, 10.3_
 
-  - [ ] 3.2 Implement role-based access control (RBAC)
+  - [x] 3.2 Implement role-based access control (RBAC) with Cognito Groups
     - Define user roles (super_admin, study_admin, site_admin, investigator, coordinator, data_entry, viewer)
+    - Create Cognito Groups in existing User Pool for role management and assignment
+    - Configure custom attributes for organization/site associations in existing User Pool
     - Create permission system with granular access controls for clinical studies and sites
-    - Implement middleware for route-level authorization
-    - Add site-based access restrictions
-    - Write tests for permission validation across all roles
+    - Implement middleware for route-level authorization using Cognito JWT claims and group membership
+    - Add site-based access restrictions through Cognito custom attributes and group policies
+    - Write tests for permission validation across all roles and Cognito Groups
     - _Requirements: 2.2, 2.3_
 
-  - [ ] 3.3 Create user management interface
-    - Build user registration and profile management forms
-    - Implement password reset functionality with security measures
-    - Create admin interface for user management with role assignment
-    - Add form validation and error handling
-    - Implement user activity monitoring dashboard
+  - [x] 3.3 Create user management interface with existing Cognito configuration
+    - Build user registration and profile management forms using existing Cognito clients (Backend + SPA)
+    - Implement Cognito-based password reset functionality using existing domain configuration
+    - Create admin interface for user management with Cognito Groups and role assignment
+    - Add form validation and error handling for Cognito operations using AWS SDK
+    - Implement user activity monitoring dashboard with existing CloudWatch integration
+    - Configure Cognito triggers for user lifecycle events (pre-signup, post-authentication, etc.) if needed
     - _Requirements: 2.1, 2.4_
 
-- [ ] 4. Develop clinical study and organization management system
-  - [ ] 4.1 Create clinical study protocol management with flexible visit configuration
+- [x] 4. Develop clinical study and organization management system
+  - [x] 4.1 Create clinical study protocol management with flexible visit configuration
     - Implement ClinicalStudy table operations with flexible visit templates and examination configuration
     - Create study creation API with protocol versioning and regulatory approval tracking
     - Build study status management (planning, active, recruiting, completed, suspended, terminated)
@@ -81,7 +86,7 @@
     - Write unit tests for study management logic including flexible examination ordering
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [ ] 4.2 Build organization management system
+  - [x] 4.2 Build organization management system
     - Implement Organizations table operations with organization information and capabilities tracking
     - Create organization registration and management API endpoints
     - Add organization-study association management with patient capacity controls
@@ -89,7 +94,7 @@
     - Write API tests for organization management flows
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 4.3 Create patient master management system
+  - [x] 4.3 Create patient master management system
     - Implement Patients table operations with anonymized patient information
     - Create patient registration and search API endpoints with organization-based filtering
     - Build patient-survey assignment functionality for existing patients
@@ -97,14 +102,43 @@
     - Write unit tests for patient master management and assignment logic
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 4.4 Create clinical study and organization management interface
-    - Build clinical study creation form with flexible visit template configuration
-    - Implement study listing and search interface with status filtering
-    - Create organization registration and management forms
-    - Add study-organization association interface with capacity management
-    - Build patient master search and assignment interface
-    - Write component tests for study, organization, and patient management workflows
-    - _Requirements: 1.1, 1.4, 2.1, 3.1_
+  - [x] 4.4 Create clinical study and organization management interface with full CRUD functionality
+    - [x] 4.4.1 Implement clinical study CRUD operations
+      - Build clinical study creation form with flexible visit template configuration and examination selection
+      - Create clinical study editing form with protocol versioning and status management
+      - Implement clinical study detail view with complete protocol information and participant tracking
+      - Add clinical study deletion functionality with confirmation and dependency checking
+      - Build study listing and search interface with status filtering and pagination
+      - Write component tests for clinical study CRUD workflows
+      - _Requirements: 1.1, 1.2, 1.3, 1.4_
+    
+    - [x] 4.4.2 Implement organization CRUD operations
+      - Create organization registration form with contact information and capabilities
+      - Build organization editing form with status management and capacity updates
+      - Implement organization detail view with associated studies and patient statistics
+      - Add organization deletion functionality with confirmation and dependency checking
+      - Create organization listing and search interface with status filtering
+      - Write component tests for organization CRUD workflows
+      - _Requirements: 2.1, 2.2_
+    
+    - [x] 4.4.3 Implement patient master CRUD operations
+      - Build patient registration form with medical history and contact information
+      - Create patient editing form with status management and medical information updates
+      - Implement patient detail view with participation history and survey assignments
+      - Add patient status management (active/inactive/withdrawn/completed) with confirmation
+      - Build patient search and assignment interface with organization-based filtering
+      - Create patient-survey assignment functionality for existing patients
+      - Write component tests for patient master CRUD workflows
+      - _Requirements: 3.1, 3.2, 3.3, 3.4_
+    
+    - [x] 4.4.4 Implement management interface integration
+      - Add study-organization association interface with capacity management
+      - Create bulk operations for patient assignments and status updates
+      - Implement data validation and error handling across all CRUD operations
+      - Add confirmation dialogs and success/error notifications for all operations
+      - Build responsive design for mobile and tablet access
+      - Write integration tests for cross-entity relationships and dependencies
+      - _Requirements: 1.4, 2.1, 3.1_
 
 - [ ] 5. Implement survey and visit management system with flexible configuration
   - [ ] 5.1 Create survey management with clinical study and patient integration

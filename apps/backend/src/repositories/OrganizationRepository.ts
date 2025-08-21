@@ -19,6 +19,15 @@ export class OrganizationRepository extends BaseRepository<OrganizationRecord> {
     return null;
   }
 
+  protected getIndexPartitionKeyName(indexName: string): string | null {
+    switch (indexName) {
+      case indexNames.entityTypeIndex:
+        return 'entityType';
+      default:
+        return null;
+    }
+  }
+
   protected getIndexSortKeyName(indexName: string): string | null {
     switch (indexName) {
       case indexNames.entityTypeIndex:
@@ -44,6 +53,19 @@ export class OrganizationRepository extends BaseRepository<OrganizationRecord> {
     };
 
     return await this.create(organization);
+  }
+
+  /**
+   * Find all organizations
+   */
+  async findAllOrganizations(): Promise<OrganizationRecord[]> {
+    console.log('=== ORGANIZATION REPOSITORY FIND ALL ===');
+    const result = await this.queryByPartitionKey('organization', {
+      indexName: indexNames.entityTypeIndex,
+    });
+
+    console.log('Repository found organizations:', result.items.length);
+    return result.items;
   }
 
   /**
@@ -132,5 +154,12 @@ export class OrganizationRepository extends BaseRepository<OrganizationRecord> {
    */
   async updateCertifications(orgId: string, certifications: string[]): Promise<OrganizationRecord> {
     return await this.update(orgId, { certifications });
+  }
+
+  /**
+   * Delete organization by ID
+   */
+  async deleteById(organizationId: string): Promise<void> {
+    await this.delete(organizationId);
   }
 }

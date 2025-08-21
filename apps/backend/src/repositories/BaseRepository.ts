@@ -16,6 +16,7 @@ import { docClient, tableNames } from '../config/database.js';
  */
 export abstract class BaseRepository<T> {
   protected tableName: string;
+  protected docClient = docClient;
 
   constructor(tableName: string) {
     this.tableName = tableName;
@@ -39,6 +40,24 @@ export abstract class BaseRepository<T> {
       return item;
     } catch (error) {
       console.error(`Error creating item in ${this.tableName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Save (create or update) a record
+   */
+  async save(item: T): Promise<T> {
+    try {
+      const command = new PutCommand({
+        TableName: this.tableName,
+        Item: item,
+      });
+
+      await docClient.send(command);
+      return item;
+    } catch (error) {
+      console.error(`Error saving item in ${this.tableName}:`, error);
       throw error;
     }
   }
@@ -152,8 +171,18 @@ export abstract class BaseRepository<T> {
   ): Promise<{ items: T[]; lastEvaluatedKey?: any }> {
     try {
       let keyConditionExpression = `#pk = :pk`;
+      
+      // Use the correct partition key name based on whether we're querying an index
+      const partitionKeyName = options?.indexName ? 
+        this.getIndexPartitionKeyName(options.indexName) : 
+        this.getPrimaryKeyName();
+      
+      if (!partitionKeyName) {
+        throw new Error(`Unable to determine partition key name for index: ${options?.indexName}`);
+      }
+      
       const expressionAttributeNames: Record<string, string> = {
-        '#pk': this.getPrimaryKeyName(),
+        '#pk': partitionKeyName,
       };
       const expressionAttributeValues: Record<string, any> = {
         ':pk': partitionKeyValue,
@@ -324,5 +353,6 @@ export abstract class BaseRepository<T> {
   // Abstract methods to be implemented by subclasses
   protected abstract getPrimaryKeyName(): string;
   protected abstract getSortKeyName(): string | null;
+  protected abstract getIndexPartitionKeyName(indexName: string): string | null;
   protected abstract getIndexSortKeyName(indexName: string): string | null;
 }
