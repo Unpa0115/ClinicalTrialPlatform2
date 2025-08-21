@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { authService } from '../../services/AuthService';
 import {
   Box,
   Paper,
@@ -149,9 +150,11 @@ const SurveyManagementTable: React.FC<SurveyManagementTableProps> = ({
         url += `?clinicalStudyId=${clinicalStudyId}`;
       }
       
+      const token = await authService.getAccessToken();
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         }
       });
       
