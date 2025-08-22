@@ -20,11 +20,29 @@ export class SurveyRepository extends BaseRepository<SurveyRecord> {
   }
 
   protected getIndexPartitionKeyName(indexName: string): string | null {
-    return null;
+    switch (indexName) {
+      case indexNames.organizationIndex:
+        return 'organizationId';
+      case indexNames.studyIndex:
+        return 'clinicalStudyId';
+      case indexNames.patientIndex:
+        return 'patientId';
+      default:
+        return null;
+    }
   }
 
   protected getIndexSortKeyName(indexName: string): string | null {
-    return null; // All GSIs use single key
+    switch (indexName) {
+      case indexNames.organizationIndex:
+        return 'status';
+      case indexNames.studyIndex:
+        return 'status';
+      case indexNames.patientIndex:
+        return 'status';
+      default:
+        return null;
+    }
   }
 
   /**

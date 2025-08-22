@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
   Box,
   Paper,
@@ -44,7 +43,6 @@ import {
   Visibility as VisibilityIcon,
   Edit as EditIcon
 } from '@mui/icons-material';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = dateFnsLocalizer({
   format,

@@ -202,18 +202,30 @@ const SurveyManagementTable: React.FC<SurveyManagementTableProps> = ({
     if (!selectedSurvey) return;
     
     try {
-      const response = await fetch(`/api/surveys/${selectedSurvey.surveyId}`, {
+      const token = await authService.getAccessToken();
+      const response = await fetch(`http://localhost:3001/api/surveys/${selectedSurvey.surveyId}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
         }
       });
       
       if (response.ok) {
-        const data = await response.json();
-        setSurveyDetails(data.data);
-        setDetailsDialogOpen(true);
+        const responseText = await response.text();
+        console.log('Survey details response:', responseText);
+        
+        try {
+          const data = JSON.parse(responseText);
+          setSurveyDetails(data.data || data);
+          setDetailsDialogOpen(true);
+        } catch (parseError) {
+          console.error('Failed to parse survey details JSON:', parseError);
+          setError('Invalid response format from server');
+        }
       } else {
-        setError('Failed to load survey details');
+        const errorText = await response.text();
+        console.error('Survey details API Error:', response.status, errorText);
+        setError(`Failed to load survey details: ${response.status}`);
       }
     } catch (err) {
       console.error('Error loading survey details:', err);
@@ -578,12 +590,12 @@ const SurveyManagementTable: React.FC<SurveyManagementTableProps> = ({
                 <Box display="flex" alignItems="center" gap={1} mb={2}>
                   <TimelineIcon />
                   <Typography variant="h6">
-                    Visits ({surveyDetails.visits.length})
+                    Visits ({surveyDetails.visits?.length || 0})
                   </Typography>
                 </Box>
                 
                 <List>
-                  {surveyDetails.visits.map((visit: any) => (
+                  {surveyDetails.visits?.map((visit: any) => (
                     <ListItem key={visit.visitId}>
                       <ListItemIcon>
                         {visit.status === 'completed' ? (
@@ -606,7 +618,11 @@ const SurveyManagementTable: React.FC<SurveyManagementTableProps> = ({
                         }
                       />
                     </ListItem>
-                  ))}
+                  )) || (
+                    <ListItem>
+                      <ListItemText primary="No visits found" />
+                    </ListItem>
+                  )}
                 </List>
               </Box>
             </Box>
