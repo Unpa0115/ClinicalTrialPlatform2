@@ -78,7 +78,13 @@ export abstract class BaseRepository<T> {
       });
 
       const result = await docClient.send(command);
-      return (result.Item as T) || null;
+      const item = result.Item as T;
+      
+      if (item) {
+        return this.convertDynamoDbSets(item);
+      }
+      
+      return null;
     } catch (error) {
       console.error(`Error finding item by ID in ${this.tableName}:`, error);
       throw error;
@@ -126,7 +132,13 @@ export abstract class BaseRepository<T> {
       });
 
       const result = await docClient.send(command);
-      return result.Attributes as T;
+      const updatedItem = result.Attributes as T;
+      
+      if (updatedItem) {
+        return this.convertDynamoDbSets(updatedItem);
+      }
+      
+      return updatedItem;
     } catch (error) {
       console.error(`Error updating item in ${this.tableName}:`, error);
       throw error;
@@ -213,8 +225,10 @@ export abstract class BaseRepository<T> {
       });
 
       const result = await docClient.send(command);
+      const items = (result.Items as T[]) || [];
+      
       return {
-        items: (result.Items as T[]) || [],
+        items: items.map(item => this.convertDynamoDbSets(item)),
         lastEvaluatedKey: result.LastEvaluatedKey,
       };
     } catch (error) {
@@ -308,7 +322,8 @@ export abstract class BaseRepository<T> {
 
         const result = await docClient.send(command);
         if (result.Responses?.[this.tableName]) {
-          results.push(...(result.Responses[this.tableName] as T[]));
+          const items = result.Responses[this.tableName] as T[];
+          results.push(...items.map(item => this.convertDynamoDbSets(item)));
         }
       }
 
@@ -340,14 +355,48 @@ export abstract class BaseRepository<T> {
       });
 
       const result = await docClient.send(command);
+      const items = (result.Items as T[]) || [];
+      
       return {
-        items: (result.Items as T[]) || [],
+        items: items.map(item => this.convertDynamoDbSets(item)),
         lastEvaluatedKey: result.LastEvaluatedKey,
       };
     } catch (error) {
       console.error(`Error scanning ${this.tableName}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Convert DynamoDB Set types to JavaScript arrays
+   * DynamoDB Document Client sometimes returns Set objects instead of arrays
+   */
+  protected convertDynamoDbSets(item: T): T {
+    if (!item || typeof item !== 'object') {
+      return item;
+    }
+
+    const converted = { ...item };
+    
+    // Convert any Set objects to arrays
+    Object.keys(converted).forEach(key => {
+      const value = (converted as any)[key];
+      
+      // Check if value is a Set object (has values property and is iterable)
+      if (value && typeof value === 'object' && value.values && typeof value.values === 'function') {
+        (converted as any)[key] = Array.from(value.values());
+      }
+      // Also check for empty Set objects that appear as {}
+      else if (value && typeof value === 'object' && Object.keys(value).length === 0 && value.constructor === Object) {
+        // For empty sets, keep as empty array if the field name suggests it should be an array
+        const fieldName = key.toLowerCase();
+        if (fieldName.includes('examination') || fieldName.includes('order') || fieldName.includes('required') || fieldName.includes('optional') || fieldName.includes('completed') || fieldName.includes('skipped')) {
+          (converted as any)[key] = [];
+        }
+      }
+    });
+
+    return converted;
   }
 
   // Abstract methods to be implemented by subclasses

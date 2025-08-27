@@ -3,10 +3,16 @@ import { CreateTableCommand, CreateTableCommandInput } from '@aws-sdk/client-dyn
 // DynamoDB Table Definitions for Clinical Trial Platform
 // Based on validated mockups and refined requirements
 
+// Get environment prefix
+const environment = process.env.ENVIRONMENT || 'dev';
+const getTableName = (baseName: string): string => {
+  return `${environment}-${baseName}`;
+};
+
 export const tableDefinitions: CreateTableCommandInput[] = [
   // 1. ClinicalStudy Table
   {
-    TableName: 'ClinicalStudy',
+    TableName: getTableName('ClinicalStudy'),
     KeySchema: [
       {
         AttributeName: 'clinicalStudyId',
@@ -43,22 +49,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 2. Organizations Table
   {
-    TableName: 'Organizations',
+    TableName: getTableName('Organizations'),
     KeySchema: [
       {
         AttributeName: 'organizationId',
@@ -95,22 +93,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 3. Users Table
   {
-    TableName: 'Users',
+    TableName: getTableName('Users'),
     KeySchema: [
       {
         AttributeName: 'userId',
@@ -147,10 +137,6 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
       {
         IndexName: 'CognitoSubIndex',
@@ -162,10 +148,6 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         ],
         Projection: {
           ProjectionType: 'ALL',
-        },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
         },
       },
       {
@@ -179,22 +161,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 4. Patients Table
   {
-    TableName: 'Patients',
+    TableName: getTableName('Patients'),
     KeySchema: [
       {
         AttributeName: 'patientId',
@@ -231,22 +205,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 5. Surveys Table
   {
-    TableName: 'Surveys',
+    TableName: getTableName('Surveys'),
     KeySchema: [
       {
         AttributeName: 'surveyId',
@@ -283,10 +249,6 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
       {
         IndexName: 'OrganizationIndex',
@@ -298,10 +260,6 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         ],
         Projection: {
           ProjectionType: 'ALL',
-        },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
         },
       },
       {
@@ -315,22 +273,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 6. Visits Table
   {
-    TableName: 'Visits',
+    TableName: getTableName('Visits'),
     KeySchema: [
       {
         AttributeName: 'surveyId',
@@ -371,10 +321,6 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
       {
         IndexName: 'OrganizationIndex',
@@ -387,22 +333,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 15,
-      WriteCapacityUnits: 15,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 7. BasicInfo Table (基礎情報)
   {
-    TableName: 'BasicInfo',
+    TableName: getTableName('BasicInfo'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -447,22 +385,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 8. VAS Table (Visual Analog Scale)
   {
-    TableName: 'VAS',
+    TableName: getTableName('VAS'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -507,22 +437,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 9. ComparativeScores Table (相対評価)
   {
-    TableName: 'ComparativeScores',
+    TableName: getTableName('ComparativeScores'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -567,22 +489,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 10. LensFluidSurfaceAssessment Table (フィッティング・涙濡れ性検査)
   {
-    TableName: 'LensFluidSurfaceAssessment',
+    TableName: getTableName('LensFluidSurfaceAssessment'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -627,22 +541,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 11. DR1 Table (涙液層検査)
   {
-    TableName: 'DR1',
+    TableName: getTableName('DR1'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -687,22 +593,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 12. CorrectedVA Table (矯正視力検査)
   {
-    TableName: 'CorrectedVA',
+    TableName: getTableName('CorrectedVA'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -747,22 +645,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 13. LensInspection Table (レンズ検査)
   {
-    TableName: 'LensInspection',
+    TableName: getTableName('LensInspection'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -807,22 +697,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 14. Questionnaire Table (問診)
   {
-    TableName: 'Questionnaire',
+    TableName: getTableName('Questionnaire'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -867,22 +749,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 15. AuditLog Table (監査ログ)
   {
-    TableName: 'AuditLog',
+    TableName: getTableName('AuditLog'),
     KeySchema: [
       {
         AttributeName: 'logId',
@@ -927,10 +801,6 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
       {
         IndexName: 'TargetTypeIndex',
@@ -947,22 +817,14 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         Projection: {
           ProjectionType: 'ALL',
         },
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 5,
-          WriteCapacityUnits: 5,
-        },
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 15,
-      WriteCapacityUnits: 15,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
   },
 
   // 16. DraftData Table (統合下書き管理) - with TTL
   {
-    TableName: 'DraftData',
+    TableName: getTableName('DraftData'),
     KeySchema: [
       {
         AttributeName: 'visitId',
@@ -983,11 +845,7 @@ export const tableDefinitions: CreateTableCommandInput[] = [
         AttributeType: 'S',
       },
     ],
-    BillingMode: 'PROVISIONED',
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 10,
-    },
+    BillingMode: 'PAY_PER_REQUEST',
     // TTL will be configured separately after table creation
   },
 ];

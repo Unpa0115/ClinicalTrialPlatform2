@@ -88,8 +88,11 @@ async function configureTTL(): Promise<void> {
       Enabled: true,
     };
     
+    const environment = process.env.ENVIRONMENT || 'dev';
+    const tableName = `${environment}-DraftData`;
+    
     const command = new UpdateTimeToLiveCommand({
-      TableName: 'DraftData',
+      TableName: tableName,
       TimeToLiveSpecification: ttlSpec,
     });
     

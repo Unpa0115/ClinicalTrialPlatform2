@@ -75,7 +75,7 @@ export class DraftDataRepository extends BaseRepository<DraftRecord> {
       ttl,
     };
 
-    return await this.create(draftRecord);
+    return await this.save(draftRecord);
   }
 
   /**

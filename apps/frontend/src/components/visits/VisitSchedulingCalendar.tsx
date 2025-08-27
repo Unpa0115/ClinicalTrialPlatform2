@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
   Box,
   Paper,
@@ -27,6 +28,7 @@ import {
   IconButton
 } from '@mui/material';
 import { Calendar, dateFnsLocalizer, Views, View } from 'react-big-calendar';
+import { useNavigate } from 'react-router-dom';
 import { format, parse, startOfWeek, getDay, addDays, isBefore, isAfter } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -41,7 +43,8 @@ import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
   Visibility as VisibilityIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  Science as ExaminationIcon
 } from '@mui/icons-material';
 
 const localizer = dateFnsLocalizer({
@@ -103,6 +106,7 @@ const VisitSchedulingCalendar: React.FC<VisitSchedulingCalendarProps> = ({
   onVisitScheduled,
   refreshTrigger
 }) => {
+  const navigate = useNavigate();
   const [visits, setVisits] = useState<Visit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -169,8 +173,81 @@ const VisitSchedulingCalendar: React.FC<VisitSchedulingCalendarProps> = ({
       });
       
       if (response.ok) {
-        // This is a placeholder - we need a proper visits list endpoint
-        setVisits([]);
+        // Create test data with current dates (August 2025)
+        const now = new Date();
+        const testVisits: Visit[] = [
+          {
+            surveyId: 'survey-test-001',
+            visitId: 'visit-baseline-001',
+            clinicalStudyId: 'study-test-001',
+            organizationId: organizationId,
+            patientId: 'patient-test-001',
+            visitNumber: 1,
+            visitType: 'baseline',
+            visitName: 'ベースライン検査',
+            scheduledDate: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+            windowStartDate: new Date(now.getTime()).toISOString(), // Today
+            windowEndDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+            status: 'scheduled',
+            completionPercentage: 0,
+            requiredExaminations: ['basic-info', 'vas', 'fitting', 'dr1', 'questionnaire'], // From config
+            optionalExaminations: [],
+            examinationOrder: ['basic-info', 'dr1', 'fitting', 'vas', 'questionnaire'], // From config
+            completedExaminations: [],
+            skippedExaminations: [],
+            conductedBy: 'user-001',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            surveyId: 'survey-test-001',
+            visitId: 'visit-1week-002',
+            clinicalStudyId: 'study-test-001',
+            organizationId: organizationId,
+            patientId: 'patient-test-001',
+            visitNumber: 2,
+            visitType: '1week',
+            visitName: '1週間後フォローアップ',
+            scheduledDate: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days from now
+            windowStartDate: new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days from now
+            windowEndDate: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+            status: 'scheduled',
+            completionPercentage: 0,
+            requiredExaminations: ['vas', 'comparative'], // From config
+            optionalExaminations: ['lens-inspection', 'questionnaire'], // From config
+            examinationOrder: ['vas', 'comparative', 'lens-inspection', 'questionnaire'], // From config
+            completedExaminations: [],
+            skippedExaminations: [],
+            conductedBy: 'user-001',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            surveyId: 'survey-test-002',
+            visitId: 'visit-baseline-003',
+            clinicalStudyId: 'study-dry-eye-002', // Different study configuration
+            organizationId: organizationId,
+            patientId: 'patient-test-002',
+            visitNumber: 1,
+            visitType: 'baseline',
+            visitName: 'ベースライン検査（ドライアイ試験）',
+            scheduledDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+            windowStartDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
+            windowEndDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
+            status: 'in_progress',
+            completionPercentage: 50,
+            requiredExaminations: ['basic-info', 'dr1', 'vas', 'fitting', 'questionnaire'], // Dry eye config
+            optionalExaminations: [],
+            examinationOrder: ['basic-info', 'dr1', 'vas', 'fitting', 'questionnaire'], // Dry eye order
+            completedExaminations: ['basic-info', 'dr1'],
+            skippedExaminations: [],
+            conductedBy: 'user-001',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+        ];
+        
+        setVisits(testVisits);
       } else {
         setError('Failed to load visits');
       }
@@ -241,6 +318,13 @@ const VisitSchedulingCalendar: React.FC<VisitSchedulingCalendarProps> = ({
   const handleSlotSelect = ({ start, end }: { start: Date; end: Date }) => {
     // This would open a dialog to schedule a new visit
     // For now, we'll focus on rescheduling existing visits
+  };
+
+  const handleStartExamination = () => {
+    if (selectedVisit) {
+      navigate(`/examinations/${selectedVisit.visitId}`);
+      setDetailsDialogOpen(false);
+    }
   };
 
   const handleScheduleVisit = async () => {
@@ -569,6 +653,16 @@ const VisitSchedulingCalendar: React.FC<VisitSchedulingCalendarProps> = ({
                 onClick={handleReschedule}
               >
                 Reschedule
+              </Button>
+            )}
+            {(selectedVisit?.status === 'scheduled' || selectedVisit?.status === 'in_progress') && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<ExaminationIcon />}
+                onClick={handleStartExamination}
+              >
+                検査データ入力
               </Button>
             )}
           </DialogActions>

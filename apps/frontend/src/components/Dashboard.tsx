@@ -17,6 +17,7 @@ import {
   Analytics as AnalyticsIcon,
   Business as BusinessIcon,
   PersonAdd as PersonAddIcon,
+  Science as ExaminationIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -69,9 +70,10 @@ const Dashboard: React.FC = () => {
     {
       title: '動的検査データ入力',
       description: 'Visit構成に応じた柔軟な検査データ入力フォーム',
-      icon: <AssignmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
-      path: '/mockups/examination-entry',
-      status: 'ready',
+      icon: <ExaminationIcon sx={{ fontSize: 40, color: 'secondary.main' }} />,
+      path: '/examinations/visit-baseline-001',
+      status: 'new',
+      roles: ['super_admin', 'study_admin', 'org_admin', 'investigator', 'coordinator', 'data_entry'],
     },
     {
       title: 'データレビュー',
