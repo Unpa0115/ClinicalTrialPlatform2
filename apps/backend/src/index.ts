@@ -10,6 +10,7 @@ import patientsRoutes from './routes/patients.js';
 import surveyRoutes from './routes/surveyRoutes.js';
 import visitRoutes from './routes/visitRoutes.js';
 import examinationRoutes from './routes/examinationRoutes.js';
+import adminRoutes from './routes/admin.js';
 
 // Try to load .env from current directory, then parent directories
 dotenv.config();
@@ -61,6 +62,9 @@ app.use('/api/visits', visitRoutes);
 
 // Examination routes
 app.use('/api/examinations', examinationRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);

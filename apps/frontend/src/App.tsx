@@ -15,6 +15,7 @@ import VisitSchedulingCalendar from './components/visits/VisitSchedulingCalendar
 import VisitProgressDashboard from './components/visits/VisitProgressDashboard';
 import DynamicExaminationForm from './components/examinations/DynamicExaminationForm';
 import ExaminationConfigManager from './components/admin/ExaminationConfigManager';
+import AdminDashboard from './components/admin/AdminDashboard';
 
 // Auth-aware header component
 function AuthHeader() {
@@ -204,7 +205,7 @@ function AuthHeader() {
               </MenuItem>
               
               {user.role === 'super_admin' && (
-                <MenuItem onClick={() => { handleClose(); /* Add system admin route */ }}>
+                <MenuItem onClick={() => { handleClose(); navigate('/admin'); }}>
                   <AdminPanelSettings sx={{ mr: 1 }} />
                   システム管理
                 </MenuItem>
@@ -336,6 +337,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <ExaminationConfigManager />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
